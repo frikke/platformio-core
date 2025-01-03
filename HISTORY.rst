@@ -7,6 +7,7 @@ Release Notes
 .. |INTERPOLATION| replace:: `Interpolation of Values <https://docs.platformio.org/en/latest/projectconf/interpolation.html>`__
 .. |UNITTESTING| replace:: `Unit Testing <https://docs.platformio.org/en/latest/advanced/unit-testing/index.html>`__
 .. |DEBUGGING| replace:: `Debugging <https://docs.platformio.org/en/latest/plus/debugging.html>`__
+.. |STATICCODEANALYSIS| replace:: `Static Code Analysis <https://docs.platformio.org/en/latest/advanced/static-code-analysis/index.html>`__
 
 .. _release_notes_6:
 
@@ -17,8 +18,75 @@ Unlock the true potential of embedded software development with
 PlatformIO's collaborative ecosystem, embracing declarative principles,
 test-driven methodologies, and modern toolchains for unrivaled success.
 
-6.1.11 (2023-??-??)
+6.1.17 (2024-??-??)
 ~~~~~~~~~~~~~~~~~~~
+
+* Added support for ``tar.xz`` tarball dependencies (`pull #4974 <https://github.com/platformio/platformio-core/pull/4974>`_)
+* Ensured that dependencies of private libraries are no longer unnecessarily re-installed, optimizing dependency management and reducing redundant operations (`issue #4987 <https://github.com/platformio/platformio-core/issues/4987>`_)
+* Resolved an issue where the ``compiledb`` target failed to properly escape compiler executable paths containing spaces (`issue #4998 <https://github.com/platformio/platformio-core/issues/4998>`_)
+* Resolved an issue with incorrect path resolution when linking static libraries via the `build_flags <https://docs.platformio.org/en/latest/projectconf/sections/env/options/build/build_flags.html>`__ option (`issue #5004 <https://github.com/platformio/platformio-core/issues/5004>`_)
+* Resolved an issue where the ``--project-dir`` flag did not function correctly with the `pio check <https://docs.platformio.org/en/latest/core/userguide/cmd_check.html>`__ and `pio debug <https://docs.platformio.org/en/latest/core/userguide/cmd_debug.html>`__ commands (`issue #5029 <https://github.com/platformio/platformio-core/issues/5029>`_)
+* Resolved an issue where the |LDF| occasionally excluded bundled platform libraries from the dependency graph (`pull #4941 <https://github.com/platformio/platformio-core/pull/4941>`_)
+
+6.1.16 (2024-09-26)
+~~~~~~~~~~~~~~~~~~~
+
+* Added support for Python 3.13
+* Introduced the `PLATFORMIO_SYSTEM_TYPE <https://docs.platformio.org/en/latest/envvars.html#envvar-PLATFORMIO_SYSTEM_TYPE>`__ environment variable, enabling manual override of the detected system type for greater flexibility and control in custom build environments
+* Enhanced internet connection checks by falling back to HTTPS protocol when HTTP (port 80) fails (`issue #4980 <https://github.com/platformio/platformio-core/issues/4980>`_)
+* Upgraded the build engine to the latest version of SCons (4.8.1) to improve build performance, reliability, and compatibility with other tools and systems (`release notes <https://github.com/SCons/scons/releases/tag/4.8.1>`__)
+* Upgraded the `Doctest <https://docs.platformio.org/en/latest/advanced/unit-testing/frameworks/doctest.html>`__ testing framework to version 2.4.11, the `GoogleTest <https://docs.platformio.org/en/latest/advanced/unit-testing/frameworks/doctest.html>`__ to version 1.15.2, and the `Unity <https://docs.platformio.org/en/latest/advanced/unit-testing/frameworks/unity.html>`__ to version 2.6.0, incorporating the latest features and improvements for enhanced testing capabilities
+* Corrected an issue where the incorrect public class was imported for the ``DoctestTestRunner`` (`issue #4949 <https://github.com/platformio/platformio-core/issues/4949>`_)
+
+6.1.15 (2024-04-25)
+~~~~~~~~~~~~~~~~~~~
+
+* Resolved an issue where the |LDF| couldn't locate a library dependency declared via version control system repository (`issue #4885 <https://github.com/platformio/platformio-core/issues/4885>`_)
+* Resolved an issue related to the inaccurate detection of the Clang compiler (`pull #4897 <https://github.com/platformio/platformio-core/pull/4897>`_)
+
+6.1.14 (2024-03-21)
+~~~~~~~~~~~~~~~~~~~
+
+* Introduced the ``--json-output`` option to the `pio test <https://docs.platformio.org/en/latest/core/userguide/cmd_test.html>`__ command, enabling users to generate test results in the JSON format
+* Upgraded the build engine to the latest version of SCons (4.7.0) to improve build performance, reliability, and compatibility with other tools and systems (`release notes <https://github.com/SCons/scons/releases/tag/4.7.0>`__)
+* Broadened version support for the ``pyelftools`` dependency, enabling compatibility with lower versions and facilitating integration with a wider range of third-party tools (`issue #4834 <https://github.com/platformio/platformio-core/issues/4834>`_)
+* Addressed an issue where passing a relative path (``--project-dir``) to the `pio project init <https://docs.platformio.org/en/latest/core/userguide/project/cmd_init.html>`__ command resulted in an error (`issue #4847 <https://github.com/platformio/platformio-core/issues/4847>`_)
+* Enhanced |STATICCODEANALYSIS| to accommodate scenarios where custom ``src_dir`` or ``include_dir`` are located outside the project folder (`pull #4874 <https://github.com/platformio/platformio-core/pull/4874>`_)
+* Corrected the validation of ``symlink://`` `package specifications <https://docs.platformio.org/en/latest/core/userguide/pkg/cmd_install.html#local-folder>`__ , resolving an issue that caused the package manager to repeatedly reinstall dependencies (`pull #4870 <https://github.com/platformio/platformio-core/pull/4870>`_)
+* Resolved an issue related to the relative package path in the `pio pkg publish <https://docs.platformio.org/en/latest/core/userguide/pkg/cmd_publish.html>`__ command
+* Resolved an issue where the |LDF| selected an incorrect library version (`issue #4860 <https://github.com/platformio/platformio-core/issues/4860>`_)
+* Resolved an issue with the ``hexlify`` filter in the `device monitor <https://docs.platformio.org/en/latest/core/userguide/device/cmd_monitor.html>`__ command, ensuring proper representation of characters with Unicode code points higher than 127 (`issue #4732 <https://github.com/platformio/platformio-core/issues/4732>`_)
+
+6.1.13 (2024-01-12)
+~~~~~~~~~~~~~~~~~~~
+
+* Expanded support for SCons variables declared in the legacy format ``${SCONS_VARNAME}`` (`issue #4828 <https://github.com/platformio/platformio-core/issues/4828>`_)
+
+6.1.12 (2024-01-10)
+~~~~~~~~~~~~~~~~~~~
+
+* Added support for Python 3.12
+* Introduced the capability to launch the debug server in a separate process (`issue #4722 <https://github.com/platformio/platformio-core/issues/4722>`_)
+* Introduced a warning during the verification of MCU maximum RAM usage, signaling when the allocated RAM surpasses 100% (`issue #4791 <https://github.com/platformio/platformio-core/issues/4791>`_)
+* Drastically enhanced the speed of project building when operating in verbose mode (`issue #4783 <https://github.com/platformio/platformio-core/issues/4783>`_)
+* Upgraded the build engine to the latest version of SCons (4.6.0) to improve build performance, reliability, and compatibility with other tools and systems (`release notes <https://github.com/SCons/scons/releases/tag/4.6.0>`__)
+* Enhanced the handling of built-in variables in |PIOCONF| during |INTERPOLATION| (`issue #4695 <https://github.com/platformio/platformio-core/issues/4695>`_)
+* Enhanced PIP dependency declarations for improved reliability and extended support to include Python 3.6 (`issue #4819 <https://github.com/platformio/platformio-core/issues/4819>`_)
+* Implemented automatic installation of missing dependencies when utilizing a SOCKS proxy (`issue #4822 <https://github.com/platformio/platformio-core/issues/4822>`_)
+* Implemented a fail-safe mechanism to terminate a debugging session if an unknown CLI option is passed (`issue #4699 <https://github.com/platformio/platformio-core/issues/4699>`_)
+* Rectified an issue where ``${platformio.name}`` erroneously represented ``None`` as the default `project name <https://docs.platformio.org/en/latest/projectconf/sections/platformio/options/generic/name.html>`__ (`issue #4717 <https://github.com/platformio/platformio-core/issues/4717>`_)
+* Resolved an issue where the ``COMPILATIONDB_INCLUDE_TOOLCHAIN`` setting was not correctly applying to private libraries (`issue #4762 <https://github.com/platformio/platformio-core/issues/4762>`_)
+* Resolved an issue where ``get_systype()`` inaccurately returned the architecture when executed within a Docker container on a 64-bit kernel with a 32-bit userspace (`issue #4777 <https://github.com/platformio/platformio-core/issues/4777>`_)
+* Resolved an issue with incorrect handling of the ``check_src_filters`` option when used in multiple environments (`issue #4788 <https://github.com/platformio/platformio-core/issues/4788>`_)
+* Resolved an issue where running `pio project metadata <https://docs.platformio.org/en/latest/core/userguide/project/cmd_metadata.html>`__ resulted in duplicated "include" entries (`issue #4723 <https://github.com/platformio/platformio-core/issues/4723>`_)
+* Resolved an issue where native debugging failed on the host machine (`issue #4745 <https://github.com/platformio/platformio-core/issues/4745>`_)
+* Resolved an issue where custom debug configurations were being inadvertently overwritten in VSCode's ``launch.json`` (`issue #4810 <https://github.com/platformio/platformio-core/issues/4810>`_)
+
+6.1.11 (2023-08-31)
+~~~~~~~~~~~~~~~~~~~
+
+* Resolved a possible issue that may cause generated projects for `PlatformIO IDE for VSCode <https://docs.platformio.org/en/latest/integration/ide/vscode.html>`__ to fail to launch a debug session because of a missing "objdump" binary when GDB is not part of the toolchain package
+* Resolved a regression issue that resulted in the malfunction of the Memory Inspection feature within `PIO Home <https://docs.platformio.org/en/latest/home/index.html>`__
 
 6.1.10 (2023-08-11)
 ~~~~~~~~~~~~~~~~~~~

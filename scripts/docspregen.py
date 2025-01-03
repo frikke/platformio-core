@@ -39,7 +39,7 @@ RST_COPYRIGHT = """..  Copyright (c) 2014-present PlatformIO <contact@platformio
     limitations under the License.
 """
 
-SKIP_DEBUG_TOOLS = ["esp-bridge", "esp-builtin"]
+SKIP_DEBUG_TOOLS = ["esp-bridge", "esp-builtin", "dfu"]
 
 STATIC_FRAMEWORK_DATA = {
     "arduino": {
@@ -357,6 +357,8 @@ Packages
       - Description"""
     )
     for name, options in dict(sorted(packages.items())).items():
+        if name == "toolchain-gccarmnoneeab":  # aceinna typo fix
+            name = name + "i"
         package = REGCLIENT.get_package(
             "tool", options.get("owner", "platformio"), name
         )
@@ -411,6 +413,7 @@ Packages
 
 
 def generate_platform(pkg, rst_dir):
+    owner = pkg.metadata.spec.owner
     name = pkg.metadata.name
     print("Processing platform: %s" % name)
 
@@ -426,9 +429,9 @@ def generate_platform(pkg, rst_dir):
     p = PlatformFactory.new(name)
     assert p.repository_url.endswith(".git")
     github_url = p.repository_url[:-4]
-    registry_url = reg_package_url("platform", pkg.metadata.spec.owner, name)
+    registry_url = reg_package_url("platform", owner, name)
 
-    lines.append(".. _platform_%s:" % p.name)
+    lines.append(".. _platform_%s:" % name)
     lines.append("")
 
     lines.append(p.title)
@@ -437,7 +440,7 @@ def generate_platform(pkg, rst_dir):
     lines.append(":Registry:")
     lines.append("  `%s <%s>`__" % (registry_url, registry_url))
     lines.append(":Configuration:")
-    lines.append("  :ref:`projectconf_env_platform` = ``%s``" % p.name)
+    lines.append("  :ref:`projectconf_env_platform` = ``%s/%s``" % (owner, name))
     lines.append("")
     lines.append(p.description)
     lines.append(

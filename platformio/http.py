@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import json
-import os
 import socket
 from urllib.parse import urljoin
 
@@ -22,6 +21,7 @@ from urllib3.util.retry import Retry
 
 from platformio import __check_internet_hosts__, app, util
 from platformio.cache import ContentCache, cleanup_content_cache
+from platformio.compat import is_proxy_set
 from platformio.exception import PlatformioException, UserSideException
 
 __default_requests_timeout__ = (10, None)  # (connect, read)
@@ -63,9 +63,11 @@ class HTTPSession(requests.Session):
             kwargs["timeout"] = __default_requests_timeout__
         return super().request(
             method,
-            url
-            if url.startswith("http") or not self._x_base_url
-            else urljoin(self._x_base_url, url),
+            (
+                url
+                if url.startswith("http") or not self._x_base_url
+                else urljoin(self._x_base_url, url)
+            ),
             *args,
             **kwargs
         )
@@ -188,12 +190,11 @@ class HTTPClient:
 @util.memoized(expire="10s")
 def _internet_on():
     timeout = 2
+    use_proxy = is_proxy_set()
     socket.setdefaulttimeout(timeout)
     for host in __check_internet_hosts__:
         try:
-            for var in ("HTTP_PROXY", "HTTPS_PROXY"):
-                if not os.getenv(var) and not os.getenv(var.lower()):
-                    continue
+            if use_proxy:
                 requests.get("http://%s" % host, allow_redirects=False, timeout=timeout)
                 return True
             # try to resolve `host` for both AF_INET and AF_INET6, and then try to connect
@@ -203,6 +204,15 @@ def _internet_on():
             return True
         except:  # pylint: disable=bare-except
             pass
+
+    # falling back to HTTPs, issue #4980
+    for host in __check_internet_hosts__:
+        try:
+            requests.get("https://%s" % host, allow_redirects=False, timeout=timeout)
+        except requests.exceptions.RequestException:
+            pass
+        return True
+
     return False
 
 

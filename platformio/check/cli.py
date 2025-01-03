@@ -19,7 +19,6 @@ import json
 import os
 import shutil
 from collections import Counter
-from os.path import dirname, isfile
 from time import time
 
 import click
@@ -60,7 +59,7 @@ from platformio.project.helpers import find_project_dir_above, get_project_dir
     type=click.Choice(DefectItem.SEVERITY_LABELS.values()),
 )
 @click.option("--skip-packages", is_flag=True)
-def cli(
+def cli(  # pylint: disable=too-many-positional-arguments
     environment,
     project_dir,
     project_conf,
@@ -77,7 +76,7 @@ def cli(
     app.set_session_var("custom_project_conf", project_conf)
 
     # find project directory on upper level
-    if isfile(project_dir):
+    if os.path.isfile(project_dir):
         project_dir = find_project_dir_above(project_dir)
 
     results = []
@@ -103,12 +102,23 @@ def cli(
                     "%s: %s" % (k, ", ".join(v) if isinstance(v, list) else v)
                 )
 
-            default_src_filters = [
-                "+<%s>" % os.path.basename(config.get("platformio", "src_dir")),
-                "+<%s>" % os.path.basename(config.get("platformio", "include_dir")),
-            ]
+            default_src_filters = []
+            for d in (
+                config.get("platformio", "src_dir"),
+                config.get("platformio", "include_dir"),
+            ):
+                try:
+                    default_src_filters.append("+<%s>" % os.path.relpath(d))
+                except ValueError as exc:
+                    # On Windows if sources are located on a different logical drive
+                    if not json_output and not silent:
+                        click.echo(
+                            "Error: Project cannot be analyzed! The project folder `%s`"
+                            " is located on a different logical drive\n" % d
+                        )
+                    raise exception.ReturnErrorCode(1) from exc
 
-            src_filters = (
+            env_src_filters = (
                 src_filters
                 or pattern
                 or env_options.get(
@@ -120,11 +130,13 @@ def cli(
             tool_options = dict(
                 verbose=verbose,
                 silent=silent,
-                src_filters=src_filters,
+                src_filters=env_src_filters,
                 flags=flags or env_options.get("check_flags"),
-                severity=[DefectItem.SEVERITY_LABELS[DefectItem.SEVERITY_HIGH]]
-                if silent
-                else severity or config.get("env:" + envname, "check_severity"),
+                severity=(
+                    [DefectItem.SEVERITY_LABELS[DefectItem.SEVERITY_HIGH]]
+                    if silent
+                    else severity or config.get("env:" + envname, "check_severity")
+                ),
                 skip_packages=skip_packages or env_options.get("check_skip_packages"),
                 platform_packages=env_options.get("platform_packages"),
             )
@@ -137,14 +149,16 @@ def cli(
                     print_processing_header(tool, envname, env_dump)
 
                 ct = CheckToolFactory.new(
-                    tool, project_dir, config, envname, tool_options
+                    tool, os.getcwd(), config, envname, tool_options
                 )
 
                 result = {"env": envname, "tool": tool, "duration": time()}
                 rc = ct.check(
-                    on_defect_callback=None
-                    if (json_output or verbose)
-                    else lambda defect: click.echo(repr(defect))
+                    on_defect_callback=(
+                        None
+                        if (json_output or verbose)
+                        else lambda defect: click.echo(repr(defect))
+                    )
                 )
 
                 result["defects"] = ct.get_defects()
@@ -235,12 +249,12 @@ def collect_component_stats(result):
         components[component].update({DefectItem.SEVERITY_LABELS[defect.severity]: 1})
 
     for defect in result.get("defects", []):
-        component = dirname(defect.file) or defect.file
+        component = os.path.dirname(defect.file) or defect.file
         _append_defect(component, defect)
 
         if component.lower().startswith(get_project_dir().lower()):
             while os.sep in component:
-                component = dirname(component)
+                component = os.path.dirname(component)
                 _append_defect(component, defect)
 
     return components

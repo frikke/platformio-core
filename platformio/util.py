@@ -15,6 +15,7 @@
 import datetime
 import functools
 import math
+import os
 import platform
 import re
 import shutil
@@ -136,6 +137,11 @@ def singleton(cls):
 
 
 def get_systype():
+    # allow manual override, eg. for
+    # windows on arm64 systems with emulated x86
+    if "PLATFORMIO_SYSTEM_TYPE" in os.environ:
+        return os.environ.get("PLATFORMIO_SYSTEM_TYPE")
+
     system = platform.system().lower()
     arch = platform.machine().lower()
     if system == "windows":
@@ -143,6 +149,8 @@ def get_systype():
             arch = "x86_" + platform.architecture()[0]
         if "x86" in arch:
             arch = "amd64" if "64" in arch else "x86"
+    if arch == "aarch64" and platform.architecture()[0] == "32bit":
+        arch = "armv7l"
     return "%s_%s" % (system, arch) if arch else system
 
 
@@ -168,9 +176,8 @@ def items_in_list(needle, haystack):
 
 
 def parse_datetime(datestr):
-    if "T" in datestr and "Z" in datestr:
-        return datetime.datetime.strptime(datestr, "%Y-%m-%dT%H:%M:%SZ")
-    return datetime.datetime.strptime(datestr)
+    assert "T" in datestr and "Z" in datestr
+    return datetime.datetime.strptime(datestr, "%Y-%m-%dT%H:%M:%SZ")
 
 
 def merge_dicts(d1, d2, path=None):

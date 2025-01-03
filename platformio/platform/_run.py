@@ -44,7 +44,7 @@ class PlatformRunMixin:
             value = json.loads(value)
         return value
 
-    def run(  # pylint: disable=too-many-arguments
+    def run(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self, variables, targets, silent, verbose, jobs
     ):
         assert isinstance(variables, dict)
@@ -116,9 +116,9 @@ class PlatformRunMixin:
                 args,
                 stdout=proc.BuildAsyncPipe(
                     line_callback=self._on_stdout_line,
-                    data_callback=lambda data: None
-                    if self.silent
-                    else _write_and_flush(sys.stdout, data),
+                    data_callback=lambda data: (
+                        None if self.silent else _write_and_flush(sys.stdout, data)
+                    ),
                 ),
                 stderr=proc.BuildAsyncPipe(
                     line_callback=self._on_stderr_line,

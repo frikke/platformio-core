@@ -82,10 +82,11 @@ def validate_datetime(ctx, param, value):  # pylint: disable=unused-argument
     help="Do not show interactive prompt",
     hidden=True,
 )
-def package_publish_cmd(  # pylint: disable=too-many-arguments, too-many-locals
+def package_publish_cmd(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
     package, owner, typex, released_at, private, notify, no_interactive, non_interactive
 ):
     click.secho("Preparing a package...", fg="cyan")
+    package = os.path.abspath(package)
     no_interactive = no_interactive or non_interactive
     owner = owner or AccountClient().get_logged_username()
     do_not_pack = (

@@ -42,9 +42,9 @@ class ProjectRPC(BaseRPCHandler):
             project_dir = init_kwargs["path"]
             init_kwargs["path"] = os.path.join(init_kwargs["path"], "platformio.ini")
         elif os.path.isfile(init_kwargs["path"]):
-            project_dir = get_project_dir()
-        else:
             project_dir = os.path.dirname(init_kwargs["path"])
+        else:
+            project_dir = get_project_dir()
         with fs.cd(project_dir):
             return getattr(ProjectConfig(**init_kwargs), method)(*args)
 
@@ -372,15 +372,19 @@ class ProjectRPC(BaseRPCHandler):
 
             return dict(
                 platform=dict(
-                    ownername=platform_pkg.metadata.spec.owner
-                    if platform_pkg.metadata.spec
-                    else None,
+                    ownername=(
+                        platform_pkg.metadata.spec.owner
+                        if platform_pkg.metadata.spec
+                        else None
+                    ),
                     name=platform.name,
                     title=platform.title,
                     version=str(platform_pkg.metadata.version),
                 ),
-                board=platform.board_config(board_id).get_brief_data()
-                if board_id
-                else None,
+                board=(
+                    platform.board_config(board_id).get_brief_data()
+                    if board_id
+                    else None
+                ),
                 frameworks=frameworks or None,
             )
